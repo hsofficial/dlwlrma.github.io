@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>세포 Passaging 계산기 by HS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@100;200;300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'IBM Plex Sans KR', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .input-label {
+            flex: 1;
+            font-weight: bold;
+        }
+
+        .input-field {
+            flex: 2;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .result-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .process-container {
+            margin-top: 10px;
+        }
+
+        .guide-button {
+            display: block;
+            margin: 20px auto 0;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .guide-container {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .reference-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .reference-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .reference-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+    </style>
+     <script>
+        function calculateWorkingVolume() {
+            const flaskSize = document.getElementById("flaskSize").value;
+            const flaskCustomSize = document.getElementById("flaskCustomSize").value;
+            const cellConcentration = document.getElementById("cellConcentration").value;
+            const cellDiameter = document.getElementById("cellDiameter").value;
+            const cellDoublingTime = document.getElementById("cellDoublingTime").value;
+            const nextPassagingTime = document.getElementById("nextPassagingTime").value;
+
+            let flaskArea;
+            if (flaskSize === "custom") {
+                flaskArea = flaskCustomSize;
+            } else if (flaskSize === "25T") {
+                flaskArea = 25;
+            } else if (flaskSize === "75T") {
+                flaskArea = 75;
+            }
+
+            const cellArea = Math.PI * (cellDiameter / 2) ** 2;
+            const requiredNumberOfCells = flaskArea * 5000 / cellArea * 0.9;
+
+            const doublingTimeInHours = cellDoublingTime;
+            const numberOfPassages = Math.ceil(nextPassagingTime / doublingTimeInHours);
+            const finalNumberOfCells = requiredNumberOfCells * (2 ** numberOfPassages);
+
+            const flaskVolume = flaskArea * 5000 / 25;
+            const workingVolume = flaskVolume + finalNumberOfCells / cellConcentration;
+
+            const inputVolume = workingVolume - flaskVolume;
+            const roundedInputVolume = Math.round(inputVolume * 100) / 100;
+
+            const process =
+                `Step 1: 90% 채우는 시점의 세포 수 계산: ${requiredNumberOfCells.toFixed(2)} cells\n
+                Step 2: 초기 세포 수 계산: ${finalNumberOfCells.toFixed(2)} cells\n
+                Step 3: 필요한 통과 횟수 계산: ${numberOfPassages}\n
+                Step 4: 최종 세포 수 계산: ${finalNumberOfCells.toFixed(2)} cells\n
+                Step 5: 필요한 투입 양 계산: ${roundedInputVolume.toFixed(2)} ul`;
+
+            document.getElementById("result").innerText = `투입해야 할 [세포+배지 용액] 양: ${roundedInputVolume.toFixed(2)} ul`;
+            document.getElementById("process").innerText = process;
+        }
+
+        function toggleflaskCustomSizeInput() {
+            const flaskCustomSizeInput = document.getElementById("flaskCustomSize");
+            const flaskSize = document.getElementById("flaskSize").value;
+            flaskCustomSizeInput.disabled = flaskSize !== "custom";
+        }
+
+        function toggleGuide() {
+            const guideContainer = document.getElementById("guideContainer");
+            guideContainer.style.display = guideContainer.style.display === "none" ? "block" : "none";
+        }
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 id="calculatorTitle">세포 Passaging 계산기</h1>
+        <div class="reference-container">
+            <div class="reference-title">참고:</div>
+            <div class="reference-text" id="refHEK293T">HEK293T 세포: 세포 직경: 13 um, 증식 시간: 24 시간</div>
+            <div class="reference-text" id="refHeLa">HeLa 세포: 세포 직경: 30 um, 증식 시간: 19 시간</div>
+        </div>
+        <div class="input-container">
+            <div class="input-label" id="labelFlaskSize">플라스크 크기:</div>
+            <div class="input-field">
+                <select id="flaskSize" onchange="toggleflaskCustomSizeInput()">
+                    <option value="25T" id="option25T">25T</option>
+                    <option value="75T" id="option75T">75T</option>
+                    <option value="custom" id="optionCustom">커스텀 (면적을 cm^2로 입력)</option>
+                </select>
+                <input type="number" id="flaskCustomSize" placeholder="플라스크 면적을 입력하세요" disabled>
+            </div>
+        </div>
+        <div class="input-container">
+            <div class="input-label" id="labelCellConcentration">세포 농도 (n * 10^4 cells/ml):</div>
+            <div class="input-field">
+                <input type="number" id="cellConcentration" step="0.01" placeholder="세포 농도를 입력하세요">
+            </div>
+        </div>
+        <div class="input-container">
+            <div class="input-label" id="labelCellDiameter">세포 직경 (um):</div>
+            <div class="input-field">
+                <input type="number" id="cellDiameter" step="0.01" placeholder="세포 직경을 입력하세요">
+            </div>
+        </div>
+        <div class="input-container">
+            <div class="input-label" id="labelCellDoublingTime">세포 증식 시간 (시간):</div>
+            <div class="input-field">
+                <input type="number" id="cellDoublingTime" step="0.01" placeholder="세포 증식 시간을 입력하세요">
+            </div>
+        </div>
+        <div class="input-container">
+            <div class="input-label" id="labelnextPassgingTime">90% 채워질 시간 (시간):</div>
+            <div class="input-field">
+                <input type="number" id="nextPassagingTime" step="0.01" placeholder="원하는 시간을 입력하세요">
+            </div>
+        </div>
+        <button onclick="calculateWorkingVolume()" id="btnCalculate">계산하기</button>
+        <div class="result-container">
+            <div id="result"></div>
+            <div class="process-container" id="process"></div>
+        </div>
+    </div>
+
+    <button class="guide-button" onclick="toggleGuide()" id="btnGuide">가이드</button>
+    <div class="guide-container" id="guideContainer" style="display: none;">
+        <h2>가이드</h2>
+            <p><strong>플라스크 크기:</strong> 세포 배양 플라스크의 크기를 선택하세요 (cm^2).</p>
+            <p><strong>세포 농도 (n * 10^4 cells/ml):</strong> 세포+배지 용액의 세포 농도를 입력하세요 (n * 10^4 cells/ml). 예를 들어, 농도가 0.5 * 10^4 cells/ml이면, 0.5을 입력하세요.</p>
+            <p><strong>세포 직경 (um):</strong> 세포의 직경을 입력하세요 (마이크로미터). 예를 들어, 세포 직경이 10 um이면 10을 입력하세요.</p>
+            <p><strong>세포 증식 시간 (시간):</strong> 세포의 증식 시간을 입력하세요 (시간 단위). 예를 들어, 증식 시간이 24시간이면, 24를 입력하세요.</p>
+            <p><strong>90% 채워질 시간 (시간):</strong> 세포가 90% 채워지는데 원하는 시간을 입력하세요 (시간 단위). 예를 들어, 세포가 48시간 후에 90% 채워지길 원한다면, 48을 입력하세요.</p>
+            <p><strong>계산하기:</strong> "계산하기" 버튼을 클릭하여 세포 Passaging에 필요한 [세포+배지 용액]의 양을 계산합니다. 결과는 아래에 표시됩니다.</p>
+            <p><strong>투입해야 할 [세포+배지 용액] 양:</strong> 이 값은 세포 Passaging에 플라스크에 추가해야 할 [세포+배지 용액]의 양을 표시합니다 (마이크로리터).</p>
+            <p><strong>과정:</strong> 이 섹션에서는 세포 Passaging에 필요한 양을 계산하기 위해 수행된 계산 단계를 설명합니다.</p>
+    </div>
+</body>
+</html>
