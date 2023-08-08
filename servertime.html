@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HS 서버 시간 확인</title>
+<title>HS 서버시간 확인 서비스</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@100;200;300;400;500;600;700&display=swap');
 
@@ -87,9 +87,9 @@
 <body>
 
 <div id="tool-container">
-  <h1 style="text-align: center;">서버 시간 확인</h1>
+  <h1 style="text-align: center;">서버 시간 및 정보 확인 by HS</h1>
   <input type="text" id="server-input" placeholder="서버 주소 또는 IP">
-  <button id="check-time-button">시간 확인</button>
+  <button id="check-time-button">정보 및 시간 확인</button>
   <div id="result-container">
     <h2 id="server-header"></h2>
     <p id="server-time"></p>
@@ -97,8 +97,19 @@
   <div id="server-info-box">
     <h2>서버 정보</h2>
     <p><strong>IP 주소:</strong> <span id="server-ip"></span></p>
-    <p><strong>ISP:</strong> <span id="server-isp"></span></p>
     <p><strong>국가:</strong> <span id="server-country"></span></p>
+    <p><strong>국가 코드:</strong> <span id="server-country-code"></span></p>
+    <p><strong>지역:</strong> <span id="server-region"></span></p>
+    <p><strong>지역 이름:</strong> <span id="server-region-name"></span></p>
+    <p><strong>도시:</strong> <span id="server-city"></span></p>
+    <p><strong>우편번호:</strong> <span id="server-zip"></span></p>
+    <p><strong>위도:</strong> <span id="server-lat"></span></p>
+    <p><strong>경도:</strong> <span id="server-lon"></span></p>
+    <p><strong>시간대:</strong> <span id="server-timezone"></span></p>
+    <p><strong>ISP:</strong> <span id="server-isp"></span></p>
+    <p><strong>기관:</strong> <span id="server-org"></span></p>
+    <p><strong>자율 시스템 (AS):</strong> <span id="server-as"></span></p>
+    <p><strong>질의 IP 주소:</strong> <span id="server-query"></span></p>
   </div>
   <div id="description-button" onclick="toggleDescription()">?</div>
 </div>
@@ -136,22 +147,44 @@
       }, 1000);
     }
   
-    // 시간 확인 버튼 클릭 이벤트
+    // 정보 및 시간 확인 버튼 클릭 이벤트
     function checkTime() {
       var serverInput = document.getElementById("server-input").value;
       updateServerTime(serverInput);
   
       var serverIpElement = document.getElementById("server-ip");
-      var serverIspElement = document.getElementById("server-isp");
       var serverCountryElement = document.getElementById("server-country");
+      var serverCountryCodeElement = document.getElementById("server-country-code");
+      var serverRegionElement = document.getElementById("server-region");
+      var serverRegionNameElement = document.getElementById("server-region-name");
+      var serverCityElement = document.getElementById("server-city");
+      var serverZipElement = document.getElementById("server-zip");
+      var serverLatElement = document.getElementById("server-lat");
+      var serverLonElement = document.getElementById("server-lon");
+      var serverTimezoneElement = document.getElementById("server-timezone");
+      var serverIspElement = document.getElementById("server-isp");
+      var serverOrgElement = document.getElementById("server-org");
+      var serverASElement = document.getElementById("server-as");
+      var serverQueryElement = document.getElementById("server-query");
   
       // 서버 정보 조회 및 표시
-      fetch(`https://api.ip.sb/geoip/${serverInput}`)
+      fetch(`http://ip-api.com/json/${serverInput}`)
         .then(response => response.json())
         .then(data => {
-          serverIpElement.textContent = data.ip;
-          serverIspElement.textContent = data.organization || 'N/A';
+          serverIpElement.textContent = data.query;
           serverCountryElement.textContent = data.country || 'N/A';
+          serverCountryCodeElement.textContent = data.countryCode || 'N/A';
+          serverRegionElement.textContent = data.region || 'N/A';
+          serverRegionNameElement.textContent = data.regionName || 'N/A';
+          serverCityElement.textContent = data.city || 'N/A';
+          serverZipElement.textContent = data.zip || 'N/A';
+          serverLatElement.textContent = data.lat || 'N/A';
+          serverLonElement.textContent = data.lon || 'N/A';
+          serverTimezoneElement.textContent = data.timezone || 'N/A';
+          serverIspElement.textContent = data.isp || 'N/A';
+          serverOrgElement.textContent = data.org || 'N/A';
+          serverASElement.textContent = data.as || 'N/A';
+          serverQueryElement.textContent = data.query || 'N/A';
         })
         .catch(error => {
           console.log("서버 정보를 가져오는 동안 오류가 발생했습니다.", error);
