@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HS 서버 시간 확인</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@100;200;300;400;500;600;700&display=swap');
+
+  body {
+    font-family: 'IBM Plex Sans KR', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  #tool-container {
+    max-width: 400px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  #server-info-box {
+    background-color: #e0e0e0;
+    color: #333;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 20px;
+  }
+  
+  #server-input {
+    width: 90%;
+    padding: 10px;
+    margin-top: 10px;
+  }
+  
+  #check-time-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+  
+  #result-container {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  #description-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #3498db;
+  }
+  
+  #description-container {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 300px;
+    background-color: white;
+    border-top-left-radius: 20px;
+    display: none;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  #description-close-button {
+    text-align: right;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div id="tool-container">
+  <h1 style="text-align: center;">서버 시간 확인</h1>
+  <input type="text" id="server-input" placeholder="서버 주소 또는 IP">
+  <button id="check-time-button">시간 확인</button>
+  <div id="result-container">
+    <h2 id="server-header"></h2>
+    <p id="server-time"></p>
+  </div>
+  <div id="server-info-box">
+    <h2>서버 정보</h2>
+    <p><strong>IP 주소:</strong> <span id="server-ip"></span></p>
+    <p><strong>ISP:</strong> <span id="server-isp"></span></p>
+    <p><strong>국가:</strong> <span id="server-country"></span></p>
+  </div>
+  <div id="description-button" onclick="toggleDescription()">?</div>
+</div>
+
+<div id="description-container">
+  <div id="description-close-button" onclick="toggleDescription()">X</div>
+  <h2>사용 설명</h2>
+  <p>이 웹툴은 서버의 실시간 시간을 조회하고 서버 정보를 함께 표시하는 기능을 제공합니다.</p>
+  <p>서버에 1초 단위로 시간을 전송하도록 처리되어 있어 일부 서버는 요청 과다로 정상동작 하지 않을 수 있습니다.</p>
+  <p>서버 정보는 <a href="http://ip-api.com/" target="_blank">ip-api.com</a> API로 조회하며, 서버 시간은 내부 함수를 사용하여 처리합니다.</p>
+  <p>시간 표시는 UTC+09:00(Seoul 시간대)으로 고정입니다.</p>
+  <p> 새로운 사이트의 시간을 조회하려면 새로고침이 필요합니다.</p>
+</div>
+
+<script>
+    var descriptionContainer = document.getElementById("description-container");
+    var serverTimeElement = document.getElementById("server-time");
+  
+    function toggleDescription() {
+      if (descriptionContainer.style.display === "none") {
+        descriptionContainer.style.display = "block";
+      } else {
+        descriptionContainer.style.display = "none";
+      }
+    }
+  
+    function updateServerTime(serverAddress) {
+      var serverHeaderElement = document.getElementById("server-header");
+  
+      // 현재 시간 정보를 1초 단위로 표시
+      setInterval(function() {
+        var currentTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', timeZoneName: 'short', hour12: false, millisecond: 'numeric' });
+        serverHeaderElement.innerHTML = `<strong>[${serverAddress}]의 서버시간은</strong>`;
+        serverTimeElement.textContent = currentTime;
+      }, 1000);
+    }
+  
+    // 시간 확인 버튼 클릭 이벤트
+    function checkTime() {
+      var serverInput = document.getElementById("server-input").value;
+      updateServerTime(serverInput);
+  
+      var serverIpElement = document.getElementById("server-ip");
+      var serverIspElement = document.getElementById("server-isp");
+      var serverCountryElement = document.getElementById("server-country");
+  
+      // 서버 정보 조회 및 표시
+      fetch(`http://ip-api.com/json/${serverInput}`)
+        .then(response => response.json())
+        .then(data => {
+          serverIpElement.textContent = data.query;
+          serverIspElement.textContent = data.isp;
+          serverCountryElement.textContent = data.country;
+        })
+        .catch(error => {
+          console.log("서버 정보를 가져오는 동안 오류가 발생했습니다.", error);
+        });
+    }
+  
+    document.getElementById("check-time-button").addEventListener("click", checkTime);
+  
+    // Enter 키 이벤트 처리
+    document.getElementById("server-input").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        checkTime();
+      }
+    });
+  </script>
+
+</body>
+</html>
