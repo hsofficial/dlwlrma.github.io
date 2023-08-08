@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HS 서버시간 확인 서비스</title>
+<title>HS 서버 시간&정보 확인 서비스</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@100;200;300;400;500;600;700&display=swap');
 
@@ -25,12 +25,18 @@
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
   }
   
+
   #server-info-box {
     background-color: #e0e0e0;
     color: #333;
     border-radius: 10px;
     padding: 10px;
     margin-top: 20px;
+    overflow: hidden; /* 기본적으로 축소된 상태로 시작 */
+    max-height: 110px; /* 축소된 높이 */
+    transition: max-height 0.3s ease-in-out;
+    /* 확장된 상태에서의 높이 */
+    height: auto;
   }
   
   #server-input {
@@ -82,6 +88,11 @@
     text-align: right;
     cursor: pointer;
   }
+
+  .expand-arrow {
+    font-size: 18px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -95,7 +106,10 @@
     <p id="server-time"></p>
   </div>
   <div id="server-info-box">
-    <h2>서버 정보</h2>
+    <h2>
+      서버 정보
+      <span class="expand-arrow" id="expand-arrow" onclick="toggleServerInfo()">▼</span>
+    </h2>
     <p><strong>IP 주소:</strong> <span id="server-ip"></span></p>
     <p><strong>국가:</strong> <span id="server-country"></span></p>
     <p><strong>국가 코드:</strong> <span id="server-country-code"></span></p>
@@ -111,6 +125,9 @@
     <p><strong>자율 시스템 (AS):</strong> <span id="server-as"></span></p>
     <p><strong>질의 IP 주소:</strong> <span id="server-query"></span></p>
   </div>
+  <p style="font-size: 12px; color: #777; margin-top: 5px;">
+    참조 : 서버 정보 표시는 github pages에서는 동작하지 않음.
+  </p>
   <div id="description-button" onclick="toggleDescription()">?</div>
 </div>
 
@@ -125,80 +142,93 @@
 </div>
 
 <script>
-    var descriptionContainer = document.getElementById("description-container");
-    var serverTimeElement = document.getElementById("server-time");
-  
-    function toggleDescription() {
-      if (descriptionContainer.style.display === "none") {
-        descriptionContainer.style.display = "block";
-      } else {
-        descriptionContainer.style.display = "none";
-      }
+  var descriptionContainer = document.getElementById("description-container");
+  var serverTimeElement = document.getElementById("server-time");
+
+  function toggleDescription() {
+    if (descriptionContainer.style.display === "none") {
+      descriptionContainer.style.display = "block";
+    } else {
+      descriptionContainer.style.display = "none";
     }
-  
-    function updateServerTime(serverAddress) {
-      var serverHeaderElement = document.getElementById("server-header");
-  
-      // 현재 시간 정보를 1초 단위로 표시
-      setInterval(function() {
-        var currentTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', timeZoneName: 'short', hour12: false, millisecond: 'numeric' });
-        serverHeaderElement.innerHTML = `<strong>[${serverAddress}]의 서버시간은</strong>`;
-        serverTimeElement.textContent = currentTime;
-      }, 1000);
+  }
+
+  function updateServerTime(serverAddress) {
+    var serverHeaderElement = document.getElementById("server-header");
+
+    // 현재 시간 정보를 1초 단위로 표시
+    setInterval(function() {
+      var currentTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', timeZoneName: 'short', hour12: false, millisecond: 'numeric' });
+      serverHeaderElement.innerHTML = `<strong>[${serverAddress}]의 서버시간은</strong>`;
+      serverTimeElement.textContent = currentTime;
+    }, 1000);
+  }
+
+  // 정보 및 시간 확인 버튼 클릭 이벤트
+  function checkTime() {
+    var serverInput = document.getElementById("server-input").value;
+    updateServerTime(serverInput);
+
+    var serverIpElement = document.getElementById("server-ip");
+    var serverCountryElement = document.getElementById("server-country");
+    var serverCountryCodeElement = document.getElementById("server-country-code");
+    var serverRegionElement = document.getElementById("server-region");
+    var serverRegionNameElement = document.getElementById("server-region-name");
+    var serverCityElement = document.getElementById("server-city");
+    var serverZipElement = document.getElementById("server-zip");
+    var serverLatElement = document.getElementById("server-lat");
+    var serverLonElement = document.getElementById("server-lon");
+    var serverTimezoneElement = document.getElementById("server-timezone");
+    var serverIspElement = document.getElementById("server-isp");
+    var serverOrgElement = document.getElementById("server-org");
+    var serverASElement = document.getElementById("server-as");
+    var serverQueryElement = document.getElementById("server-query");
+
+    // 서버 정보 조회 및 표시
+    fetch(`http://ip-api.com/json/${serverInput}`)
+      .then(response => response.json())
+      .then(data => {
+        serverIpElement.textContent = data.query;
+        serverCountryElement.textContent = data.country || 'N/A';
+        serverCountryCodeElement.textContent = data.countryCode || 'N/A';
+        serverRegionElement.textContent = data.region || 'N/A';
+        serverRegionNameElement.textContent = data.regionName || 'N/A';
+        serverCityElement.textContent = data.city || 'N/A';
+        serverZipElement.textContent = data.zip || 'N/A';
+        serverLatElement.textContent = data.lat || 'N/A';
+        serverLonElement.textContent = data.lon || 'N/A';
+        serverTimezoneElement.textContent = data.timezone || 'N/A';
+        serverIspElement.textContent = data.isp || 'N/A';
+        serverOrgElement.textContent = data.org || 'N/A';
+        serverASElement.textContent = data.as || 'N/A';
+        serverQueryElement.textContent = data.query || 'N/A';
+      })
+      .catch(error => {
+        console.log("서버 정보를 가져오는 동안 오류가 발생했습니다.", error);
+      });
+  }
+
+  document.getElementById("check-time-button").addEventListener("click", checkTime);
+
+  // Enter 키 이벤트 처리
+  document.getElementById("server-input").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      checkTime();
     }
-  
-    // 정보 및 시간 확인 버튼 클릭 이벤트
-    function checkTime() {
-      var serverInput = document.getElementById("server-input").value;
-      updateServerTime(serverInput);
-  
-      var serverIpElement = document.getElementById("server-ip");
-      var serverCountryElement = document.getElementById("server-country");
-      var serverCountryCodeElement = document.getElementById("server-country-code");
-      var serverRegionElement = document.getElementById("server-region");
-      var serverRegionNameElement = document.getElementById("server-region-name");
-      var serverCityElement = document.getElementById("server-city");
-      var serverZipElement = document.getElementById("server-zip");
-      var serverLatElement = document.getElementById("server-lat");
-      var serverLonElement = document.getElementById("server-lon");
-      var serverTimezoneElement = document.getElementById("server-timezone");
-      var serverIspElement = document.getElementById("server-isp");
-      var serverOrgElement = document.getElementById("server-org");
-      var serverASElement = document.getElementById("server-as");
-      var serverQueryElement = document.getElementById("server-query");
-  
-      // 서버 정보 조회 및 표시
-      fetch(`http://ip-api.com/json/${serverInput}`)
-        .then(response => response.json())
-        .then(data => {
-          serverIpElement.textContent = data.query;
-          serverCountryElement.textContent = data.country || 'N/A';
-          serverCountryCodeElement.textContent = data.countryCode || 'N/A';
-          serverRegionElement.textContent = data.region || 'N/A';
-          serverRegionNameElement.textContent = data.regionName || 'N/A';
-          serverCityElement.textContent = data.city || 'N/A';
-          serverZipElement.textContent = data.zip || 'N/A';
-          serverLatElement.textContent = data.lat || 'N/A';
-          serverLonElement.textContent = data.lon || 'N/A';
-          serverTimezoneElement.textContent = data.timezone || 'N/A';
-          serverIspElement.textContent = data.isp || 'N/A';
-          serverOrgElement.textContent = data.org || 'N/A';
-          serverASElement.textContent = data.as || 'N/A';
-          serverQueryElement.textContent = data.query || 'N/A';
-        })
-        .catch(error => {
-          console.log("서버 정보를 가져오는 동안 오류가 발생했습니다.", error);
-        });
-    }
-  
-    document.getElementById("check-time-button").addEventListener("click", checkTime);
-  
-    // Enter 키 이벤트 처리
-    document.getElementById("server-input").addEventListener("keydown", function(event) {
-      if (event.key === "Enter") {
-        checkTime();
-      }
-    });
+  });
+
+  var expandArrowElement = document.getElementById("expand-arrow");
+  var serverInfoBox = document.getElementById("server-info-box");
+
+function toggleServerInfo() {
+  if (serverInfoBox.style.maxHeight) {
+    serverInfoBox.style.maxHeight = null;
+    expandArrowElement.textContent = "▼";
+  } else {
+    serverInfoBox.style.maxHeight = "800px"; // 확장된 높이
+    expandArrowElement.textContent = "▲";
+  }
+}
 </script>
 
 </body>
